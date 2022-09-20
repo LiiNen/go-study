@@ -44,7 +44,7 @@
 
 <h4>12장</h4>
 
-- 배열 초기화 시에는 배열 크기와 함께 중괄호를 꼭 써주어야한다.
+- 배열 초기화 시에는 배열 크기와 함께 중괄호를 꼭 써주어야한다. (대괄호 안됨)
 
 ```
 a := [5]int{1,2,3,4,5}
@@ -146,3 +146,77 @@ string.Builder 사용해서 합연산 하는것으로..
 
 - package import 에서 underscore의 사용  
 https://stackoverflow.com/questions/26972615/a-use-case-for-importing-with-blank-identifier-in-golang
+
+초기화 목적으로는 사용. 이렇게 하면 init 같은 함수는 실행된다.
+
+
+
+<h3>0921 스터디 내용</h3>
+<h4>18장 슬라이스</h4>
+
+- var arr []int 형태로 슬라이스 사용
+- 기본적으로는 길이 0
+- 배열과 슬라이스는 다른 개념으로, 갯수 선언하면 배열선언하는것
+- {n:m}
+  - 배열과 슬라이스 모두 사용 가능한 개념
+  - n번째 인덱스에 m으로 선언
+  - {1, 2, 3, 2:6} 을 하면, index=2 의 값이 3과 6으로 duplicate, 에러
+  - 선언되지 않은 부분은 0으로 초기화
+- make([]int, 3) : 3개짜리 int slice // 당연히 0으로 초기화  
+뒷부분(360p): make([]int, 3, 6)을 하면, 3개는 0으로 초기화. 사용가능한건 6개  
+make([]type, len, cap)
+- append(target, elements)
+  - target 맨 뒤에 element 를 추가한 형태를 '리턴'
+  - 리턴하는 것이므로 target에는 값의 변화가 없음
+  - element 는 , 로 여러개를 한 번에 할 수 있지만, 타입은 맞춰야함  
+  즉, append(slice1, slice2)는 안됨  
+  뒷부분(376p): append(slice1, slice2...) 라고하면 된다. ... 붙이면 각 요솟값과 같음
+  - make([]int, 3, 5) 인 상태에서 2개 이하만큼 append 하면 그 바로 뒤 공간에 넣어서 리턴  
+  이때 리턴된건 기존의 slice와 동일한 포인터 주소  
+  만약 make([]int, 3, 4) 인데, 2개 이상을 append 하면 새로운 배열을 만들어서 리턴함  
+  cap-len이 추가하려는 원소 수보다 작으면 새로 배열생성, 그렇지않으면 여유공간에 삽입후 리턴
+- 슬라이싱
+  - 파이썬처럼 중간의 일부 원소 뽑는거와 개념은 같음
+  - 다만, arr[n : m] 이라고하면  
+  len = m-n, cap = len(arr) - n이 된다.  
+  실제 값 복사는 다 안되더라도 cap의 여유공간은 그대로 가져감
+  - arr[n : m : k] 라고하면  
+  len = m-n, cap = len(arr)-m-k 가 된다.  
+  arr의 k 번째 원소까지만 사용한다는 뜻
+- 포인터 관련 문제를 해결하려면, 같은 길이로 초기화하고 요소값을 복사해야함
+- copy(arr1, arr2)
+  - arr1에 arr2를 복사한다
+  - arr2의 len이 더 커도, arr1의 len까지만 복사함
+  - arr1의 len이, arr2의 cap보다 커도 문제없음. 오히려 딱 len 까지만 복사하는 개념
+  - arr2의 내용이 적어도, arr1앞부터 그냥 차례대로복사하고 끝
+- 특이하게.. 삽입과 삭제 모두 append를 이용해서함. 인덱싱 개념으로
+
+<h4>19장 메소드</h4>
+
+- type myint int 해서, int와 동일한데 myint라는 이름을 가졌기에 메소드 사용가능...
+
+<h4>20장 인터페이스</h4>
+
+- 메소드 오버로딩 안된다
+- 구조체 타입이 string 메소드를 갖고있으면, string에 대입해서 사용 가능: 덕타이핑  
+덕 타이핑 덕분에 implements 구문을 안써도 명시적으로 인터페이스 지원이 된다
+- ? 근데, 명시하면 안되나..?
+- 인터페이스.(타입) : 구체화된 인터페이스를 다시 타입으로 변환(복원)  
+리턴값은 두개. a, b := c.(d) 라고 하면
+  - c가 d 로 변환된 결과가 a에
+  - 변환의 성공실패여부가 b에 들어간다. // 실패시 a는 못씀
+  - 런타임에러 방지. 애초에 반환 실패해도 컴파일타임 에러는 안나는데, 런타임 에러가 나기 때문에 방지책
+
+<h4>21장 함수</h4>
+
+- 모든 타입은 interface{} : 빈 인터페이스 를 포함하고 있다.
+- defer는 가장 마지막에 실행하도록 하는것  
+stack처럼, 가장 처음에 defer로 수행시킨 함수는 가장 나중에 실행된다.
+- defer 사용하는 신기한 예시  
+https://stackoverflow.com/questions/52718143/is-golang-defer-statement-execute-before-or-after-return-statement
+- 함수 포인터
+  - 리턴부에 func(param) type 이라고 쓰면  
+  param을 입력받아서 type을 리턴하는 '함수'를 리턴하는 함수를 작성 가능
+  - func(param) type 도 별칭으로 줄일 수 있다.
+    - type rfunc func (int, int) int
+    - func tfunc(int) rfunc (위에서 선언된 'func(int, int) int' 를 통째로 rfunc로 축약)
